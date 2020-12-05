@@ -12,8 +12,9 @@ from django.utils import timezone
 
 from aiarena.core.api import Matches
 from aiarena.core.management.commands import cleanupreplays
-from aiarena.core.models import User, Bot, Map, Match, Result, MatchParticipation, Season, Round, ArenaClient
+from aiarena.core.models import User, Bot, Map, Match, Result, MatchParticipation, Season, Round, ArenaClient, News
 from aiarena.core.utils import calculate_md5
+
 
 
 class BaseTestMixin(object):
@@ -665,3 +666,35 @@ class ManagementCommandTests(MatchReadyMixin, TransactionTestCase):
 
         # confirm a result was registered
         self.assertTrue(match1.result is not None)
+
+
+class NewsModel(TestCase):
+    def setUp(self):
+        News.objects.create(title="Titled", text="Titled, correct yt link", yt_link="https://www.youtube.com/watch?v=w5h4yJ-BpL4&ab_channel=WalkingOnCarsVEVO")
+        News.objects.create(text="No title news", yt_link="https://www.youtube.com/embed/w5h4yJ-BpL4")
+
+    # check if calling obj returns title(if set) or date in format
+    def stringify_news(self):
+        news_title = News.objects.get(id=1)
+        news_no_title = News.objects.get(id=2)
+
+        self.assertEqual(news_title.__str__(), "Titled")  # return title
+        self.assertEqual(news_no_title.__str__(), news_no_title.created.strftime("%d %b %Y - %H:%M:%S"))  # return date
+
+    def test_youtube_correct_link(self):
+        new_full = News.objects.get(id=1)
+        new_embed = News.objects.get(id=2)
+
+        self.assertEqual(new_full.yt_link, "https://www.youtube.com/embed/w5h4yJ-BpL4")
+        self.assertEqual(new_embed.yt_link, "https://www.youtube.com/embed/w5h4yJ-BpL4")
+
+    def test_youtube_incorrect_link(self):
+        with self.assertRaisesMessage(ValidationError, "YouTube link needed, with 'https://www.' prefix"):
+            News.objects.create(text="Incorrect yt link - no https",
+                                yt_link="www.youtube.com/watch?v=w5h4yJ-BpL4&ab_channel=WalkingOnCarsVEVO")
+        with self.assertRaisesMessage(ValidationError, "YouTube link needed, with 'https://www.' prefix"):
+            News.objects.create(text="Incorrect yt link - no https,www",
+                                yt_link="youtube.com/watch?v=w5h4yJ-BpL4&ab_channel=WalkingOnCarsVEVO")
+        with self.assertRaisesMessage(ValidationError, "YouTube link needed, with 'https://www.' prefix"):
+            News.objects.create(text="Incorrect link",
+                                yt_link="https://www.facebook.com/")

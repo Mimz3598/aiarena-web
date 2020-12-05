@@ -7,6 +7,7 @@ from .admin import MapAdmin, MatchAdmin, SeasonAdmin
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 
+
 class AdminMethodsTestCase(FullDataSetMixin, TestCase):
 
    # admin uses this functionality

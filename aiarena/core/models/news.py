@@ -22,7 +22,7 @@ class News(models.Model):
     # youtube videos urls need to be in exact format
     def save(self, *args, **kwargs):
         if self.yt_link:
-            embedded_youtube_regex = re.compile('^https:\\/\\/www\\.youtube\\.com\\/embed\\/([a-zA-Z0-9])+$')
+            embedded_youtube_regex = re.compile('^https:\\/\\/www\\.youtube\\.com\\/embed\\/([a-zA-Z0-9-_])+$')
             valid_url = re.compile('^https:\\/\\/www\\.youtube\\.com\\/(embed\\/|watch\\?v)')
             if not embedded_youtube_regex.match(self.yt_link):
                 if not valid_url.match(self.yt_link):
